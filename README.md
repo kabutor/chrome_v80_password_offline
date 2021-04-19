@@ -4,7 +4,7 @@ __What is this?__ A couple of python scripts to view saved Chrome and new Edge c
 
 __How to use it?__ First run chrome_dpapi.py, will ask for the directory that contains 'Local State' and 
 'Login Data' (those are on the profile directory of Chrome), it then will ask for the directory that contains
-the masterkeys used to encrypt the key (Roaming/Microsoft/Protect/<SID>/).
+the masterkeys used to encrypt the key (Roaming/Microsoft/Protect/_SID_/).
   You have to supply the login password for that user, if all is well, a decryted.bin file will be created, just run 
   chrome_v80_password_offline.py and you will see all the credentils saved.
   
