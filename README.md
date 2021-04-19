@@ -2,11 +2,11 @@
 
 __What is this?__ A couple of python scripts to view saved Chrome and new Edge credentials offline.
 
-__How to use it?__ First run chrome_dpapi.py, will ask for the directory that contains 'Local State' and 
+__How to use it?__ First run __chrome_dpapi.py__, will ask for the directory that contains 'Local State' and 
 'Login Data' (those are on the profile directory of Chrome), it then will ask for the directory that contains
 the masterkeys used to encrypt the key (Roaming/Microsoft/Protect/_SID_/).
-  You have to supply the login password for that user, if all is well, a decryted.bin file will be created, just run 
-  chrome_v80_password_offline.py and you will see all the credentils saved.
+  You have to supply the login password for that user, if all is well, a _decrypted.bin_ file will be created, just run 
+  __chrome_v80_password_offline.py__ and you will see all the credentils saved.
   
 __Why two python files?__ Because of licensing issues, chrome_v80_password_offline is a straight copy with a few modifications
   of another repository (1) and that is under the GPL License (as well as this derivated work), the other chrome_dpapi.py depends on
