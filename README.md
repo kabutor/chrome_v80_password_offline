@@ -19,5 +19,7 @@ them as the user logged in, those scripts just ask windows to decrypt the conten
 But sometimes that is not possible,and you have to extract the credentials, and the machine is not working, hence the _"offline"_
 you need to manually extract the needed files and view them it on another machine.
 
+__Requisites__ A lot, mostly impacket.
+
 __Issues__ 20210419 - At the moment if your user has no password, you can't decrypt the dpapi blob with this script there is another 
 way of doing it, not with this script
