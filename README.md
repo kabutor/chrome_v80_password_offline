@@ -14,5 +14,10 @@ __Why two python files?__ Because of licensing issues, chrome_v80_password_offli
   (1) https://github.com/agentzex/chrome_v80_password_grabber/blob/master/chrome_v80_password_grabber.py
   (2) https://github.com/SecureAuthCorp/impacket/blob/master/LICENSE
 
+__What's Offline?__ Most, almost all, of the methods to extract the Chrome saved credentials of a windows machine depends that you run 
+them as the user logged in, those scripts just ask windows to decrypt the content with a call to dpapi and that is all. 
+But sometimes that is not possible,and you have to extract the credentials, and the machine is not working, hence the _"offline"_
+you need to manually extract the needed files and view them it on another machine.
+
 __Issues__ 20210419 - At the moment if your user has no password, you can't decrypt the dpapi blob with this script there is another 
 way of doing it, not with this script
