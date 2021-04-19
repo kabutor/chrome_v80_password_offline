@@ -11,6 +11,7 @@ the masterkeys used to encrypt the key (Roaming/Microsoft/Protect/_SID_/).
 __Why two python files?__ Because of licensing issues, chrome_v80_password_offline is a straight copy with a few modifications
   of another repository (1) and that is under the GPL License (as well as this derivated work), the other chrome_dpapi.py depends on
   impacket and a lot of code is just c&p from impacket code, and that is a modified Apache License **
+  
   (1) https://github.com/agentzex/chrome_v80_password_grabber/blob/master/chrome_v80_password_grabber.py
   (2) https://github.com/SecureAuthCorp/impacket/blob/master/LICENSE
 
