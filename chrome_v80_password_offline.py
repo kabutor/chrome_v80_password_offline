@@ -41,7 +41,7 @@ def decrypt_password(buff, master_key):
 if __name__ == '__main__':
 
     master_key = get_master_key()
-    login_db = 'test/Login Data'
+    login_db = 'Login Data'
     #shutil.copy2(login_db, "Loginvault.db") #making a temp copy since Login Data DB is locked while Chrome is running
     conn = sqlite3.connect(login_db)
     cursor = conn.cursor()
