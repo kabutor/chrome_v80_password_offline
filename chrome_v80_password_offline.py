@@ -1,11 +1,10 @@
+#!/usr/bin/python3
+
 import os
 import json
 import base64
 import sqlite3
-#import win32crypt
-#from Crypto.Cipher import AES
 from Cryptodome.Cipher import AES
-import shutil
 
 
 def get_master_key():
@@ -42,7 +41,6 @@ if __name__ == '__main__':
 
     master_key = get_master_key()
     login_db = 'Login Data'
-    #shutil.copy2(login_db, "Loginvault.db") #making a temp copy since Login Data DB is locked while Chrome is running
     conn = sqlite3.connect(login_db)
     cursor = conn.cursor()
 
