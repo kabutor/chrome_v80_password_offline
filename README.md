@@ -8,7 +8,7 @@ the masterkeys used to encrypt the key (Roaming/Microsoft/Protect/_SID_/).
  
  You have to supply the login password for that user, or use the nopass (-n) option if it's a blank password,
   if all is well, a _decrypted.bin_ file will be created, just run  __chrome_v80_password_offline.py__ and you 
-  will see all the credentils saved.
+  will see all the chrome/edge credentials saved.
   
 __Why two python files?__ Because of licensing issues, chrome_v80_password_offline is a straight copy with a few modifications
   of another repository (1) and that is under the GPL License (as well as this derivated work), the other chrome_dpapi.py depends on
