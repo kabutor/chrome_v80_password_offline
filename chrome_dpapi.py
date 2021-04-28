@@ -90,7 +90,7 @@ parser.add_argument("--dir","-d",default='./', help="directory where Local State
 parser.add_argument("--masterkey", "-m", help="set masterkey directory")
 parser.add_argument("--sid", "-s", help="set SID(optional)")
 parser.add_argument("--password", "-p", help="user password")
-#parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
+parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
 parser.set_defaults(nopass=False)
 args = parser.parse_args()
 
@@ -130,10 +130,13 @@ if not args.sid:
     except:
         print("Need to specify SID")
         sys.exit(2)
-
-if not args.password:
+#Check if password or nopass
+if args.nopass:
+        args.password= ''
+elif not args.password:
     print("Need user password (-p)")
     sys.exit(2)
+
 
 print(args.masterkey + master_key_needed)
 print(args.password)
@@ -155,6 +158,8 @@ if (key):
         f.close()
 else:
     # Just print the data
-    print("Error decrypting")
+    print(bcolors.FAIL +" * * * * * * * * * *  "+ bcolors.ENDC )
+    print(bcolors.FAIL +" * "+ bcolors.ENDC + "Error decrypting, Wrong Password?")
+    print(bcolors.FAIL +" * * * * * * * * * *  "+ bcolors.ENDC )
     blob.dump()
 
