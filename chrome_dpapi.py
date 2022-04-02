@@ -4,20 +4,13 @@
 # This only extract the key needed to decrypt the credentials 
 # Output is decrypted.bin
 #
-from binascii import unhexlify, hexlify
-from hashlib import pbkdf2_hmac
-
-from Cryptodome.Cipher import AES, PKCS1_v1_5
-from Cryptodome.Hash import HMAC, SHA1, MD4
-
-from impacket.dpapi import *
 import argparse
 import sys
 import os
 import json
 import base64
-import sqlite3
 import re
+from dpapick3 import blob, masterkey, registry
 
 class bcolors:
     HEADER = '\033[95m'
@@ -29,137 +22,111 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+class Dpapi_decrypt(object):
+    def __init__(self, d='./', m=None, u=None, s=None, n=False):
+        self.dir_location = d
+        self.masterkey_location = m
+        self.sid_value = s
+        self.user_password = u
+        self.nopass = n
+        self.entropy= None
+        self.enc_key =''
+    def local_state_file(self, path):
+        with open(os.path.join(path , 'Local State'), "r", encoding='utf-8') as f:
+            local_state = f.read()
+            local_state = json.loads(local_state)
+        enc_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])
+        enc_key = enc_key[5:]  # removing DPAPI text
+        return enc_key
 
-def local_state_file(path):
-    with open(path + 'Local State', "r", encoding='utf-8') as f:
-        local_state = f.read()
-        local_state = json.loads(local_state)
-    dpapi_blob = base64.b64decode(local_state["os_crypt"]["encrypted_key"])
-    dpapi_blob = dpapi_blob[5:]  # removing DPAPI text
-    '''
-    f = open('Cred.dpapi','wb')
-    f.write(dpapi_blob)
-    f.close()
-    '''
-    return dpapi_blob
+    def return_key(self):
+        return(self.enc_key)
 
-def master(master_key,sid,password):
+    def main(self):
+        file_list=[]
+        for f in (os.listdir(self.dir_location)):
+            file_list.append(os.path.join(self.dir_location, f))
+        if not ( (os.path.join(self.dir_location , 'Local State') in file_list) and (os.path.join(self.dir_location ,'Login Data') in file_list)):
+            print("No Local State and Login Data found in that directory")
+            sys.exit(2)
+        else:
+            print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "Local State and Login Data files found" )
+        #call function to read Local State file and get an impacket Blob dpapi file
+        #open dpapi blob
 
-    #master_key
-    fp = open(master_key, 'rb')
-    data = fp.read()
-    mkf= MasterKeyFile(data)
-    mkf.dump()
-
-    fp.close()
-    data = data[len(mkf):]
-    mk = MasterKey(data[:mkf['MasterKeyLen']])
-
-    # Will generate two keys, one with SHA1 and another with MD4
-    key1 = HMAC.new(SHA1.new(password.encode('utf-16le')).digest(), (sid + '\0').encode('utf-16le'), SHA1).digest()
-    key2 = HMAC.new(MD4.new(password.encode('utf-16le')).digest(), (sid + '\0').encode('utf-16le'), SHA1).digest()
-    # For Protected users
-    tmpKey = pbkdf2_hmac('sha256', MD4.new(password.encode('utf-16le')).digest(), sid.encode('utf-16le'), 10000)
-    tmpKey2 = pbkdf2_hmac('sha256', tmpKey, sid.encode('utf-16le'), 1)[:16]
-    key3 = HMAC.new(tmpKey2, (sid + '\0').encode('utf-16le'), SHA1).digest()[:20]
-
-    #/key1, key2, key3 = self.deriveKeysFromUser(self.options.sid, password)
-
-    # if mkf['flags'] & 4 ? SHA1 : MD4
-    decryptedKey = mk.decrypt(key3)
-    if decryptedKey:
-        print('Decrypted key with User Key (MD4 protected)')
-        print('Decrypted key: 0x%s' % hexlify(decryptedKey).decode('latin-1'))
-        return decryptedKey
-
-    decryptedKey = mk.decrypt(key2)
-    if decryptedKey:
-        print('Decrypted key with User Key (MD4)')
-        print('Decrypted key: 0x%s' % hexlify(decryptedKey).decode('latin-1'))
-        return decryptedKey
-
-    decryptedKey = mk.decrypt(key1)
-    if decryptedKey:
-        print('Decrypted key with User Key (SHA1)')
-        print('Decrypted key: 0x%s' % hexlify(decryptedKey).decode('latin-1'))
-        return decryptedKey
-
-# arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--dir","-d",default='./', help="directory where Local State and Login Data is located")
-parser.add_argument("--masterkey", "-m", help="set masterkey directory")
-parser.add_argument("--sid", "-s", help="set SID(optional)")
-parser.add_argument("--password", "-p", help="user password")
-parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
-parser.set_defaults(nopass=False)
-args = parser.parse_args()
+        key = self.local_state_file(self.dir_location)
+        bl = blob.DPAPIBlob(key)
+        
+        file_list=[]
+        if (self.masterkey_location):
+            mkp = masterkey.MasterKeyPool()
+            mkp.loadDirectory(self.masterkey_location)
+            mks = mkp.getMasterKeys(bl.mkguid.encode())
+            if len(mks) == 0:
+                sys.exit('[-] Unable to find MK for blob %s' % bl.mkguid)
+            else:
+                print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "MasterKey file found" )
+        else:
+            print("Needed masterkey(-m) directory with the location of " + bl.mkguid)
+            sys.exit(2)
+        if not (self.sid_value):
+            try:
+                self.sid_value = ( re.search('((S-1).*?)/', self.masterkey_location )[1])
+                print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "SID " + self.sid_value )
+            except:
+                print("Need to specify SID")
+                sys.exit(2)
+        #Check if password or nopass
+        if self.nopass:
+                self.user_password= ''
+        elif not self.user_password:
+            print("Need user password (-p)")
+            sys.exit(2)
 
 
-file_list=[]
-if args.dir:
-    for f in (os.listdir(args.dir)):
-        file_list.append(os.path.join(args.dir, f))
-if not ( (args.dir + 'Local State' in file_list) and (args.dir + 'Login Data' in file_list)):
-    print("No Local State and Login Data found in that directory")
-    sys.exit(2)
-else:
-    print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "Local State and Login Data files found" )
+        # go for the decrypt
+        #Add chredhist
+        #mkp.addCredhistFile(sid, os.path.join('Protect','CREDHIST'))
+        mkp.try_credential(self.sid_value, self.user_password)
 
-#call function to read Local State file and get an impacket Blob dpapi file
-blob = DPAPI_BLOB(local_state_file(args.dir))
+        for mk in mks:
+            mk.decryptWithPassword(self.sid_value,self.user_password)
+            if mk.decrypted:
+                print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "Mk decrypted")
+                bl.decrypt(mk.get_key(), entropy=self.entropy)
+                if bl.decrypted:
+                    #if called alone
+                    if __name__ == "__main__": 
+                        decrypted = bl.cleartext.hex()
+                        print(decrypted)
+                        print()
+                        print("# # Success! (saved to decrypted.bin) # #")
+                        print()
+                        #print(decrypted.decode('utf-16-le'))
+                        f = open('decrypted.bin','wb')
+                        f.write(bl.cleartext)
+                        f.close()
+                    else:
+                        # if called as module import 
+                        self.enc_key = bl.cleartext
+            else:
+                # Just print the data
+                print(bcolors.FAIL +" * * * * * * * * * *  "+ bcolors.ENDC )
+                print(bcolors.FAIL +" * "+ bcolors.ENDC + "Error decrypting, Wrong Password?")
+                print(bcolors.FAIL +" * * * * * * * * * *  "+ bcolors.ENDC )
+                print(bl)
 
-#impacket open blob
-master_key_needed = (bin_to_string(blob['GuidMasterKey']).lower())
-file_list=[]
-if (args.masterkey):
-    for f in (os.listdir(args.masterkey)):
-        file_list.append(os.path.join(args.masterkey, f))
-    if not ( args.masterkey + master_key_needed in file_list):
-        print("Masterkey " + master_key_needed + " not found")
-        sys.exit(2)
-    else:
-        print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "MasterKey file found" )
-else:
-    print("Needed masterkey(-m) directory with the location of " + master_key_needed)
-    sys.exit(2)
-
-if not args.sid:
-    try:
-        sid = ( re.search('((S-1).*?)/', args.masterkey )[1])
-        print(bcolors.OKGREEN +" * "+ bcolors.ENDC + "SID " + sid )
-    except:
-        print("Need to specify SID")
-        sys.exit(2)
-#Check if password or nopass
-if args.nopass:
-        args.password= ''
-elif not args.password:
-    print("Need user password (-p)")
-    sys.exit(2)
-
-
-print(args.masterkey + master_key_needed)
-print(args.password)
-# go for the decrypt
-key = master( args.masterkey + master_key_needed , sid , args.password)
-
-#print(hexlify(key).decode('latin-1'))
-
-if (key):
-    #key = unhexlify(key)
-    decrypted = blob.decrypt(key)
-    if decrypted is not None:
-        print()
-        print("# # Success! (saved to decrypted.bin) # #")
-        print()
-        #print(decrypted.decode('utf-16-le'))
-        f = open('decrypted.bin','wb')
-        f.write(decrypted)
-        f.close()
-else:
-    # Just print the data
-    print(bcolors.FAIL +" * * * * * * * * * *  "+ bcolors.ENDC )
-    print(bcolors.FAIL +" * "+ bcolors.ENDC + "Error decrypting, Wrong Password?")
-    print(bcolors.FAIL +" * * * * * * * * * *  "+ bcolors.ENDC )
-    blob.dump()
-
+if __name__ == "__main__":
+    # arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dir","-d",default='./', help="directory where Local State and Login Data is located")
+    parser.add_argument("--masterkey", "-m",  help="set masterkey directory")
+    parser.add_argument("--sid", "-s",  help="set SID(optional)")
+    parser.add_argument("--password", "-p", help="user password")
+    parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
+    parser.set_defaults(nopass=False)
+    #parser.set_defaults(sid=None)
+    args = parser.parse_args()
+    obj = Dpapi_decrypt(args.dir, args.masterkey,args.password, args.sid, args.nopass)
+    
+    obj.main()

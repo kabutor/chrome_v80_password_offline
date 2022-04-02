@@ -5,7 +5,9 @@ import json
 import base64
 import sqlite3
 from Cryptodome.Cipher import AES
-
+import chrome_dpapi
+import argparse
+import sys
 
 def get_master_key():
     f= open("decrypted.bin","rb")
@@ -31,15 +33,33 @@ def decrypt_password(buff, master_key):
         decrypted_pass = decrypted_pass[:-16].decode()  # remove suffix bytes
         return decrypted_pass
     except Exception as e:
-        # print("Probably saved password from Chrome version older than v80\n")
         # print(str(e))
-        return "Chrome < 80"
+        return "Credentials extraction error maybe enc_key is wrong or Chrome version < 80"
+
 
 
 
 if __name__ == '__main__':
+	# arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dir","-d",default='./', help="directory where Local State and Login Data is located")
+    parser.add_argument("--masterkey", "-m", help="set masterkey directory")
+    parser.add_argument("--sid", "-s",  help="set SID(optional)")
+    parser.add_argument("--password", "-p", help="user password")
+    parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
+    parser.set_defaults(nopass=False)
+    #parser.set_defaults(sid=None)
+    args = parser.parse_args()
 
-    master_key = get_master_key()
+    #init external class to decrypt enc_key
+    ret = chrome_dpapi.Dpapi_decrypt(args.dir,args.masterkey,args.password,args.sid, args.nopass)
+    ret.main()
+    # Get key
+    enc_key = ret.return_key()
+    if (enc_key == ''):
+        print("Error getting encription key")
+        sys.exit()
+
     login_db = 'Login Data'
     conn = sqlite3.connect(login_db)
     cursor = conn.cursor()
@@ -49,8 +69,9 @@ if __name__ == '__main__':
         url = r[0]
         username = r[1]
         encrypted_password = r[2]
-        decrypted_password = decrypt_password(encrypted_password, master_key)
-        print("URL: " + url + "\nUser Name: " + username + "\nPassword: " + decrypted_password + "\n" + "*" * 50 + "\n")
+        decrypted_password = decrypt_password(encrypted_password, enc_key)
+        print("*" * 50)
+        print("URL: " + url + "\nUser Name: " + username + "\nPassword: " + decrypted_password + "\n" )
 
     cursor.close()
     conn.close()
