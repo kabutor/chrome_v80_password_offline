@@ -10,7 +10,7 @@ __How to use it?__ run  __chrome_v80_password_offline.py__ and you
  Optionally you need to know the user password, or use the nopass option if it's a blank one.  
   
   
-__Why two python files?__ On the old version it was because of licensing issues, no is because I plan to reuse chrome_dpapi.py.
+__Why two python files?__ On the old version it was because of licensing issues, now is because I plan to reuse chrome_dpapi.py.
  
   chrome_v80_password_offline is a straight copy with some modifications of another repository (1) and that is under the GPL License (as well as this derivated work), the other chrome_dpapi.py depends on dpapick3 ** but it's all my code, so I just move it into the GPL v3.
   
