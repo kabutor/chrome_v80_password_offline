@@ -22,6 +22,10 @@ them as the user logged in, those scripts just ask windows to decrypt the conten
 But sometimes that is not possible,and you have to extract the credentials, and the machine is not working, hence the _"offline"_
 you need to manually extract the needed files and view them it on another machine.
 
+__TBAL DPAPI Flaw__
+You can now decode the Chrome (any DPAPI Vault) without the user password, if TBAL registry key is available, read more about https://vztekoverflow.com/2018/07/31/tbal-dpapi-backdoor/
+If you enable it with --tba you need to specify the Windows registry directory (\Windows\System32\config\)
+
 __Bonus.Cookies__
   
   Added a decryptchromecookies.py python script to decrypt the Chrome cookies, file is on the profile Default/Network/Cookies, copy it to the same directory as the Local State and Login Data files, it uses the same method to retrieve the encryption key for the Login Data (is the same) so the requisites are the same
