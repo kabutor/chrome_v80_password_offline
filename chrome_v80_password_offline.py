@@ -47,12 +47,15 @@ if __name__ == '__main__':
     parser.add_argument("--sid", "-s",  help="set SID(optional)")
     parser.add_argument("--password", "-p", help="user password")
     parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
+    parser.add_argument("--config","-c",dest="config_reg",help="Register files location (Usually \Windows\System32\config")
+    parser.add_argument("--tba","-t", dest="tba", action='store_true', help="if TBA, use DPAPI key")
     parser.set_defaults(nopass=False)
+    parser.set_defaults(tba=False)
     #parser.set_defaults(sid=None)
     args = parser.parse_args()
 
     #init external class to decrypt enc_key
-    ret = chrome_dpapi.Dpapi_decrypt(args.dir,args.masterkey,args.password,args.sid, args.nopass)
+    ret = chrome_dpapi.Dpapi_decrypt(args.dir,args.masterkey,args.password,args.sid, args.nopass, args.tba, args.config_reg)
     ret.main()
     # Get key
     enc_key = ret.return_key()
@@ -60,7 +63,7 @@ if __name__ == '__main__':
         print("Error getting encription key")
         sys.exit()
 
-    login_db = 'Login Data'
+    login_db = os.path.join(args.dir,'Default','Login Data')
     conn = sqlite3.connect(login_db)
     cursor = conn.cursor()
 
