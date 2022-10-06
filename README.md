@@ -24,7 +24,7 @@ you need to manually extract the needed files and view them it on another machin
 
 __TBAL DPAPI Flaw__
 You can now decode the Chrome (any DPAPI Vault) without the user password, if TBAL registry key is available, read more about https://vztekoverflow.com/2018/07/31/tbal-dpapi-backdoor/
-If you enable it with --tba you need to specify the Windows registry directory (\Windows\System32\config\)
+If you enable it with --tbal you need to specify the Windows registry directory (\Windows\System32\config\)
 
 __Bonus.Cookies__
   
