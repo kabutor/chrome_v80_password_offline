@@ -97,16 +97,14 @@ class Dpapi_decrypt(object):
             for i in list(secrets.keys()):
                 for k, v in list(secrets[i].items()):
                     if k in ('CurrVal', 'OldVal'):
-                        ## String
-                        #data = v
-                        try: data = v.decode('utf-16le')
-                        except:
-                            data = v.hex()
-                        #print(('\t'.join([i, k, '\t'+str(data)])))
+                        data = v.hex()
                         if ("TBAL" in i):
                             ntlm = str(data)[32:64]
                             tbal_data = str(data)[96:136]
                             print ('NTLM: %s  DPAPI_key %s' % (ntlm, tbal_data))
+                            try: print('User: %s' % binascii.unhexlify((data)[288:]).decode())
+                            except:
+                                pass
                             break
             if tbal_data == None:
                 sys.exit("No TBAL found")
@@ -166,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument("--password", "-p", help="user password")
     parser.add_argument("--nopass","-n",dest="nopass",action='store_true',help="no password")
     parser.add_argument("--config","-c",dest="config_reg",help="Register files location (Usually \Windows\System32\config")
-    parser.add_argument("--tba","-t", dest="tba", action='store_true', help="if TBA, use DPAPI key")
+    parser.add_argument("--tbal","-t", dest="tba", action='store_true', help="if TBA, use DPAPI key")
     parser.set_defaults(nopass=False)
     parser.set_defaults(tba=False)
     #parser.set_defaults(sid=None)
