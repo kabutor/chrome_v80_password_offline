@@ -1,11 +1,14 @@
 # chrome_v80_password_offline
+**this script was tested and working on the 15/November/2023**
 
 __What is this?__ A couple of python scripts to view saved Chrome and new Edge credentials offline.
 
 __How to use it?__ run  __chrome_v80_password_offline.py__ and you 
   will see all the chrome/edge credentials saved.
   
-  Program will ask you to the location of the ***Local State***, ***Login Data*** files (you have to copy both to the same directory), the location of the ***Masterkey directory*** (usually under Appdata/Roaming/Microsoft/Protect/<SID>), if the program can infer the SID you don't need to pass it, if not it will ask for it.
+  You have to pass as parameters:
+  - The location of the ***Local State***, ***Login Data*** files , you need to specify the Chrome settings folder with -d (usally at %USER%\\AppData\\Local\\Google\\Chrome\\User Data\)
+  -  the location of the ***Masterkey directory*** (usually under %USER%/AppData/Roaming/Microsoft/Protect/<SID>), if the program can infer the SID you don't need to pass it, if not it will ask for it.
  
  Optionally you need to know the user password, or use the nopass option if it's a blank one.  
   
