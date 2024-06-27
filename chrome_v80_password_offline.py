@@ -62,19 +62,29 @@ if __name__ == '__main__':
     if (enc_key == ''):
         print("Error getting encription key")
         sys.exit()
+    
+    # get Multi user profile
+    profile_list =[]
+    dir_list = os.listdir(args.dir)
+    for dirname in dir_list:
+        if dirname.startswith('Profile'):
+            profile_list.append(dirname)
+    # Add default profile
+    profile_list.append('Default')
+    for profile in profile_list:
+        print("### ### ### ### ### Profile %s" % profile)
+        login_db = os.path.join(args.dir, profile ,'Login Data')
+        conn = sqlite3.connect(login_db)
+        cursor = conn.cursor()
 
-    login_db = os.path.join(args.dir,'Default','Login Data')
-    conn = sqlite3.connect(login_db)
-    cursor = conn.cursor()
+        cursor.execute("SELECT action_url, username_value, password_value FROM logins")
+        for r in cursor.fetchall():
+            url = r[0]
+            username = r[1]
+            encrypted_password = r[2]
+            decrypted_password = decrypt_password(encrypted_password, enc_key)
+            print("*" * 50)
+            print("URL: " + url + "\nUser Name: " + username + "\nPassword: " + decrypted_password + "\n" )
 
-    cursor.execute("SELECT action_url, username_value, password_value FROM logins")
-    for r in cursor.fetchall():
-        url = r[0]
-        username = r[1]
-        encrypted_password = r[2]
-        decrypted_password = decrypt_password(encrypted_password, enc_key)
-        print("*" * 50)
-        print("URL: " + url + "\nUser Name: " + username + "\nPassword: " + decrypted_password + "\n" )
-
-    cursor.close()
-    conn.close()
+        cursor.close()
+        conn.close()
